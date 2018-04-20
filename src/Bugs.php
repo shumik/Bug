@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 class Bugs
 {
@@ -22,13 +23,23 @@ class Bugs
      *
      * @param int $bugs
      * @param int $stones
+     *
+     * @throws Exception
      */
     public function __construct(int $bugs, int $stones)
     {
         $this->bugs = $bugs;
         $this->stones = $stones;
+        $this->checkValues();
 
         return $this;
+    }
+
+    private function checkValues()
+    {
+        if ($this->stones < $this->bugs) {
+            throw new Exception('Number of stones should not be less then number of bugs');
+        }
     }
 
     /**
@@ -36,7 +47,7 @@ class Bugs
      *
      * @return array
      */
-    public function lastBug()
+    public function lastBug(): array
     {
         $packs = $this->bugsPacksSettled();
 
@@ -44,7 +55,7 @@ class Bugs
         $maxRow = $this->stonesForPack($packs);
 
         // calculate stones to left and right for last bug
-        $stonesDividedByTwo = ($maxRow -1) / 2;
+        $stonesDividedByTwo = ($maxRow - 1) / 2;
 
         return [
             'stones_left' => ceil($stonesDividedByTwo),
@@ -57,7 +68,7 @@ class Bugs
      *
      * @return int
      */
-    private function bugsPacksSettled()
+    private function bugsPacksSettled(): int
     {
         $bugsLeft = $this->bugs - 1;
         $packNumber = 0;
@@ -76,15 +87,15 @@ class Bugs
      *
      * @param $packs
      *
-     * @return float|int
+     * @return int
      */
-    private function stonesForPack($packs)
+    private function stonesForPack($packs): int
     {
         $maxRow = $this->stones;
         for ($i = 1; $i <= $packs; $i++) {
             $maxRow = ceil(($maxRow - 1) / 2);
         }
 
-        return $maxRow;
+        return (int)$maxRow;
     }
 }
