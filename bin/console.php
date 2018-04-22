@@ -10,13 +10,14 @@ $longOptions = [
 ];
 
 $options = getopt('', $longOptions);
-var_dump($options);
+
 if (count($options) == 2) {
     try {
         $bugs = new Bugs($bugs = $options['bugs'], $stones = $options['stones']);
-        var_dump($bugs);
-        var_dump($bugs->lastBug());
+        print_r($bugs->lastBug());
     } catch (Exception $e) {
         printf('Exception: %s' . PHP_EOL, $e->getMessage());
     }
+} else {
+    echo 'Usage: bin/console --bugs [number of bugs] --stones [number of stones]' . PHP_EOL;
 }

@@ -18,6 +18,11 @@ class Bugs
      */
     private $stones;
 
+    private $bugsInPack;
+    private $maxBugsInPack;
+    private $minRow;
+    private $bugsInPrevPacks;
+
     /**
      * Bugs constructor.
      *
@@ -28,18 +33,11 @@ class Bugs
      */
     public function __construct(int $bugs, int $stones)
     {
-        $this->bugs = $bugs;
+        $this->bugs = $bugs - 1;
         $this->stones = $stones;
         $this->checkValues();
 
         return $this;
-    }
-
-    private function checkValues()
-    {
-        if ($this->stones < $this->bugs) {
-            throw new Exception('Number of stones should not be less then number of bugs');
-        }
     }
 
     /**
@@ -49,53 +47,76 @@ class Bugs
      */
     public function lastBug(): array
     {
-        $packs = $this->bugsPacksSettled();
+        $this->calculate();
 
-        // get max stone row for current pack
-        $maxRow = $this->stonesForPack($packs);
+        // get max stone row
+        $maxRowLeft = $this->maxRowLeft();
 
         // calculate stones to left and right for last bug
-        $stonesDividedByTwo = ($maxRow - 1) / 2;
+        $rowDividedByTwo = ($maxRowLeft - 1) / 2;
 
         return [
-            'stones_left' => ceil($stonesDividedByTwo),
-            'stines_right' => floor($stonesDividedByTwo)
+            'stones_left' => ceil($rowDividedByTwo),
+            'stones_right' => floor($rowDividedByTwo)
         ];
     }
 
     /**
-     * Get number of bugs packs already settled when last bug comes
+     * Check input values
      *
-     * @return int
+     * @throws Exception
      */
-    private function bugsPacksSettled(): int
+    private function checkValues()
     {
-        $bugsLeft = $this->bugs - 1;
-        $packNumber = 0;
-
-        while ($bugsLeft >= 0) {
-            $bagsInCurrentPack = 2 ** $packNumber;
-            $bugsLeft -= $bagsInCurrentPack;
-            $packNumber++;
+        if ($this->stones < $this->bugs + 1) {
+            throw new Exception('Number of stones should not be less then number of bugs');
         }
-
-        return $packNumber - 1;
     }
 
     /**
-     * get max free stone row for pack
+     * Prepare all needed data
      *
-     * @param $packs
+     */
+    private function calculate()
+    {
+        $packsSettled = (int)floor(log($this->bugs + 1, 2));
+        $this->bugsInPrevPacks = (2 ** $packsSettled) - 1;
+        $this->maxBugsInPack = 2 ** $packsSettled;
+        $this->bugsInPack = $this->bugs - $this->bugsInPrevPacks;
+        $this->minRow = $this->getMinRow();
+    }
+
+    /**
+     * get min free stone row for pack
      *
      * @return int
      */
-    private function stonesForPack($packs): int
+    private function getMinRow(): int
     {
-        $maxRow = $this->stones;
-        for ($i = 1; $i <= $packs; $i++) {
-            $maxRow = ceil(($maxRow - 1) / 2);
-        }
+        $bugs = $this->bugsInPrevPacks;
+        $rows = $bugs + 1;
+        $minRow = floor(($this->stones - $bugs) / $rows);
 
-        return (int)$maxRow;
+        return (int)$minRow;
+    }
+
+    /**
+     * Return length of max row left
+     *
+     * @return int
+     */
+    private function maxRowLeft()
+    {
+        return $this->bugsInPack >= $this->maxRowsCount() ? $this->minRow : $this->minRow + 1;
+    }
+
+    /**
+     * Return number of rows of maximum length for current pack
+     *
+     * @return int
+     */
+    private function maxRowsCount()
+    {
+        return ($this->stones - $this->bugsInPrevPacks) % $this->maxBugsInPack;
     }
 }
